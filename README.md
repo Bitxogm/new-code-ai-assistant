@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # 🚀 AI Code Assistant
 
 Una aplicación moderna para análisis y refactorización de código impulsada por IA, construida con React, TypeScript, Gemini AI y Vercel.
