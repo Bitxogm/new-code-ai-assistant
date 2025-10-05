@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "regions": ["fra1"],
+  "functions": {
+    "api/analyze-code/index.js": {
+      "maxDuration": 30
+    },
+    "api/chat/index.js": {
+      "maxDuration": 30
+    }
+  },
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
