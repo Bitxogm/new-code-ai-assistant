@@ -1,7 +1,8 @@
 // Crea este archivo: src/lib/api-client.ts
 export class ApiClient {
-  private baseUrl = '/api';
-  // private baseUrl = 'http://localhost:3001/api';
+    private baseUrl = import.meta.env.DEV 
+    ? 'http://localhost:3001/api'
+    : '/api';
   async analyzeCode(params: { 
     code: string; 
     language: string; 
