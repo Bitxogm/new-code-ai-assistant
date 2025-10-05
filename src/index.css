@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Code AI Agent Design System - Modern Tech Theme */
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 262.1 100% 75%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 262.1 83.3% 57.8%;
+
+    --success: 142.1 76.2% 36.3%;
+    --warning: 47.9 95.8% 53.1%;
+    --info: 199.89 89.3% 48.2%;
+
+    /* Code Editor Theme */
+    --editor-bg: 240 10% 3.9%;
+    --editor-border: 240 3.7% 15.9%;
+    --editor-selection: 262.1 83.3% 57.8%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(240 5.9% 10%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(262.1 83.3% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(240 10% 3.9%) 0%, hsl(240 5.9% 10%) 50%, hsl(262.1 83.3% 20%) 100%);
+
+    /* Shadows & Effects */
+    --shadow-primary: 0 0 40px hsl(var(--primary-glow) / 0.3);
+    --shadow-card: 0 25px 50px -12px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.6);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 262.1 83.3% 57.8%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 262.1 83.3% 57.8%;
+  }
+
+  /* Light mode variants for future use */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+    background: var(--gradient-hero);
+    min-height: 100vh;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Code Editor Styles */
+  .code-editor {
+    @apply rounded-lg border border-editor-border bg-editor-bg;
+    box-shadow: var(--shadow-card);
+  }
+
+  .code-editor .CodeMirror {
+    @apply rounded-lg bg-transparent;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Glassmorphism effect */
+  .glass-card {
+    @apply backdrop-blur-xl bg-card/80 border border-border/50;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Animated gradients */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent;
+  }
+
+  .hero-button {
+    @apply relative overflow-hidden px-8 py-4 rounded-lg font-semibold transition-all duration-300;
+    background: var(--gradient-button);
+    box-shadow: var(--shadow-primary);
+  }
+
+  .hero-button:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .hero-button:active {
+    @apply scale-95;
+  }
+
+  /* Loading animations */
+  .pulse-glow {
+    @apply animate-pulse;
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+  }
+
+  /* Status indicators */
+  .status-success {
+    @apply bg-success/20 text-success border-success/30;
+  }
+
+  .status-warning {
+    @apply bg-warning/20 text-warning border-warning/30;
+  }
+
+  .status-error {
+    @apply bg-destructive/20 text-destructive border-destructive/30;
+  }
+
+  .status-processing {
+    @apply bg-info/20 text-info border-info/30;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-xl;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.7), 0 0 40px hsl(var(--primary) / 0.3);
+  }
+}
