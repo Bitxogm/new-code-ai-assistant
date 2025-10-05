@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const ANALYSIS_MODES = {
   refactor: "refactorización y mejoras de código",
-  tests: "generación de pruebas unitarias", 
+  tests: "generación de pruebas unitarias",
   security: "análisis de seguridad",
   performance: "optimización de rendimiento",
   documentation: "generación de documentación",
@@ -37,8 +37,8 @@ export default async function handler(request, response) {
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp' 
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash-exp'
     });
 
     // Construir el prompt basado en tu estructura excelente
@@ -70,17 +70,23 @@ export default async function handler(request, response) {
 
     console.log('Análisis completado exitosamente');
 
-    response.status(200).json({
-      ...jsonResponse,
-      language,
+    // Formato compatible con el frontend actual
+    const frontendResponse = {
+      success: true,
+      analysis: jsonResponse.refactoredCode || responseText,
+      mode: mode,
+      language: language,
       outputLanguage: outputLanguage || language,
-      mode,
-      isTranslation: !!(outputLanguage && outputLanguage !== language)
-    });
+      isTranslation: !!(outputLanguage && outputLanguage !== language),
+      // Mantener datos estructurados para futuro uso
+      structuredData: jsonResponse
+    };
+
+    response.status(200).json(frontendResponse);
 
   } catch (error) {
     console.error('Error en analyze-code:', error);
-    response.status(500).json({ 
+    response.status(500).json({
       error: error.message || 'Error interno del servidor',
       details: 'Error al comunicarse con Gemini AI'
     });
