@@ -1,10 +1,17 @@
+// server/index.js - IMPORTS ES6 COMPLETOS
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
 
+// Configurar __dirname para ES6
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Cargar .env
+dotenv.config();
 
 const app = express();
 const PORT = 3001;
@@ -13,43 +20,118 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('../dist'));
 
-// Mock API - analyze-code
-app.post('/api/analyze-code', (req, res) => {
-  console.log('📥 Analyze code called with:', { 
-    language: req.body.language,
-    mode: req.body.mode,
-    codeLength: req.body.code?.length 
-  });
-  
-  res.json({ 
-    result: '## ✅ Análisis de prueba exitoso\\n\\n**¡Las APIs están funcionando correctamente!**\\n\\nEste es un resultado de prueba. Cuando añadamos la integración con Gemini, aquí aparecerá el análisis real del código.\\n\\n**Parámetros recibidos:**\\n- Lenguaje: ' + req.body.language + '\\n- Modo: ' + req.body.mode + '\\n- Longitud del código: ' + (req.body.code?.length || 0) + ' caracteres',
-    language: req.body.language,
-    outputLanguage: req.body.outputLanguage || req.body.language,
-    mode: req.body.mode,
-    isTranslation: !!(req.body.outputLanguage && req.body.outputLanguage !== req.body.language)
-  });
+// Verificar API key al iniciar
+console.log('🔑 GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '✅ CONFIGURADA' : '❌ NO ENCONTRADA');
+
+// Analyze-code endpoint
+// En server/index.js - CORREGIR analyze-code endpoint:
+app.post('/api/analyze-code', async (req, res) => {
+  try {
+    const { code, language, outputLanguage, mode } = req.body;
+    
+    console.log('📥 Recibiendo análisis:', { language, mode, codeLength: code?.length });
+    
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY no configurada' });
+    }
+
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.0-flash-exp' 
+    });
+
+    // Prompt mejorado para análisis
+    const prompt = `Eres un experto en ${language}. Analiza este código en modo ${mode} y proporciona un análisis detallado:
+
+CÓDIGO:
+\`\`\`${language}
+${code}
+\`\`\`
+
+MODO: ${mode}
+
+Proporciona un análisis estructurado y útil.`;
+
+    console.log('🔍 Enviando a Gemini...');
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('✅ Respuesta recibida de Gemini');
+
+    res.json({
+      result: text,
+      language,
+      mode,
+      status: 'success'
+    });
+
+  } catch (error) {
+    console.error('❌ Error en analyze-code:', error);
+    res.status(500).json({ 
+      error: error.message,
+      details: 'Error al comunicarse con Gemini AI'
+    });
+  }
+});
+// Chat endpoint
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages, code, language, context } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Se requieren mensajes' });
+    }
+
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY no configurada' });
+    }
+
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.0-flash-exp' 
+    });
+
+    const systemPrompt = buildChatPrompt(code, language, context);
+    const lastMessage = messages[messages.length - 1];
+
+    const chat = model.startChat({
+      history: messages.slice(0, -1).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      })),
+      generationConfig: { maxOutputTokens: 4000 },
+    });
+
+    console.log('💬 Enviando chat a Gemini...');
+    const result = await chat.sendMessage(lastMessage.content);
+    const response = await result.response;
+    const content = response.text();
+
+    res.json({ result: content });
+
+  } catch (error) {
+    console.error('Error en chat:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Mock API - chat
-app.post('/api/chat', (req, res) => {
-  console.log('📥 Chat called with:', { 
-    messagesCount: req.body.messages?.length,
-    language: req.body.language 
-  });
-  
-  res.json({ 
-    result: '¡Hola! 👋 Soy tu asistente de IA. Esta es una respuesta de prueba que confirma que las APIs de chat están funcionando correctamente. Cuando integremos Gemini, podré ayudarte con análisis de código, refactorizaciones, y mucho más.\\n\\n**Estado del sistema:** ✅ APIs operativas\\n**Próximo paso:** Integración con Gemini'
-  });
-});
+// Funciones auxiliares (las mismas que antes)
+function buildAnalysisPrompt(code, inputLanguage, outputLanguage, analysisMode) {
+  // ... (pegar aquí la función completa que ya tenemos)
+}
 
-// Catch all handler para SPA
+function buildChatPrompt(code, language, context) {
+  // ... (pegar aquí la función completa que ya tenemos)
+}
+
+// Catch all handler
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor de desarrollo ejecutándose en http://localhost:${PORT}`);
-  console.log(`📊 Frontend: http://localhost:${PORT}`);
-  console.log(`🔌 API Analyze: POST http://localhost:${PORT}/api/analyze-code`);
-  console.log(`💬 API Chat: POST http://localhost:${PORT}/api/chat`);
+  console.log(`🚀 Servidor con Gemini REAL en http://localhost:${PORT}`);
 });
