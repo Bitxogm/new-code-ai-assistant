@@ -50,22 +50,18 @@ export default async function handler(request, response) {
     const responseText = geminiResponse.text();
 
     // Intentar parsear el JSON de la respuesta
-    let jsonResponse;
+    // SOLUCIÓN SIMPLIFICADA - Siempre devolver respuesta válida
+    let finalAnalysis = responseText;
+
     try {
-      // Extraer JSON de la respuesta (Gemini a veces añade texto alrededor)
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        jsonResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No se encontró JSON en la respuesta');
+        const parsed = JSON.parse(jsonMatch[0]);
+        finalAnalysis = parsed.refactoredCode || responseText;
       }
     } catch (parseError) {
-      console.error('Error parseando JSON:', parseError);
-      // Fallback: devolver respuesta como texto plano
-      jsonResponse = {
-        result: responseText,
-        error: "La respuesta no está en formato JSON válido"
-      };
+      console.error('Error parseando JSON, usando texto plano:', parseError);
+      // Mantenemos responseText como fallback
     }
 
     console.log('Análisis completado exitosamente');
@@ -73,13 +69,13 @@ export default async function handler(request, response) {
     // Formato compatible con el frontend actual
     const frontendResponse = {
       success: true,
-      analysis: jsonResponse.refactoredCode || responseText,
+      analysis: finalAnalysis,  // ← CAMBIADO: usar finalAnalysis en lugar de jsonResponse.refactoredCode
       mode: mode,
       language: language,
       outputLanguage: outputLanguage || language,
       isTranslation: !!(outputLanguage && outputLanguage !== language),
       // Mantener datos estructurados para futuro uso
-      structuredData: jsonResponse
+      structuredData: { result: finalAnalysis }
     };
 
     response.status(200).json(frontendResponse);
