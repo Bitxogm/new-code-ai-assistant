@@ -151,7 +151,7 @@ Puedes preguntarme sobre:
   };
 
   return (
-    <Sidebar className="w-80 border-l border-border hidden lg:flex">
+    <Sidebar side='right' collapsible='offcanvas'  className="w-80 border-l border-border hidden lg:flex">
       <SidebarHeader className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
