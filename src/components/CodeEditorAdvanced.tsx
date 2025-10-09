@@ -259,12 +259,29 @@ export const CodeEditorAdvanced = ({
       clearInterval(progressInterval);
       setProgress(100);
       // (apiClient ya maneja los errores, así que solo necesitas esto:)
-      if (data?.error) {
-        throw new Error(data.error);
+      // ⬇️ VERIFICACIÓN MÁS PRECISA
+      const analysisResult = data?.result || data?.analysis || data?.content;
+
+      console.log('🔍 analysisResult:', analysisResult);
+      console.log('🔍 analysisResult length:', analysisResult?.length);
+      console.log('🔍 analysisResult truthy:', !!analysisResult);
+
+      // ⬇️ VERIFICAR QUE TENGA CONTENIDO VÁLIDO
+      if (!analysisResult || analysisResult.trim().length === 0) {
+        console.error('❌ analysisResult vacío:', analysisResult);
+        throw new Error('No se recibió respuesta del análisis de IA');
       }
-      if (!data?.analysis) { throw new Error('No se recibió respuesta del análisis de IA'); }
-      setOutputCode(data.analysis);
+
+      // ⬇️ SI LLEGA AQUÍ, USAR EL RESULTADO
+      setOutputCode(analysisResult);
       setProcessingStatus('completed');
+
+      // if (data?.error) {
+      //   throw new Error(data.error);
+      // }
+      // if (!data?.analysis) { throw new Error('No se recibió respuesta del análisis de IA'); }
+      // setOutputCode(data.analysis);
+      // setProcessingStatus('completed');
 
       // Add to global analysis results
       addAnalysisResult(selectedMode, data.analysis);
