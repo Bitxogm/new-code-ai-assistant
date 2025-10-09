@@ -262,12 +262,12 @@ export const CodeEditorAdvanced = ({
       if (data?.error) {
         throw new Error(data.error);
       }
-      if (!data?.analysis) { throw new Error('No se recibió respuesta del análisis de IA'); }
-      setOutputCode(data.analysis);
+      if (!data?.result) { throw new Error('No se recibió respuesta del análisis de IA'); }
+      setOutputCode(data.result);
       setProcessingStatus('completed');
 
       // Add to global analysis results
-      addAnalysisResult(selectedMode, data.analysis);
+      addAnalysisResult(selectedMode, data.result);
 
       toast({
         title: "🎉 ¡Análisis completado!",
