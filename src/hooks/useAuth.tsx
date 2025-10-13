@@ -10,7 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  // 🛑 ELIMINADO: signInWithGoogle
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -92,26 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
-      }
-    });
-    
-    if (error) {
-      toast({
-        title: "Error con Google",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-    
-    return { error };
-  };
+  // 🛑 ELIMINADO: La función signInWithGoogle ha sido removida completamente.
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -136,8 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loading,
       signIn,
       signUp,
-      signOut,
-      signInWithGoogle
+      signOut
+      // 🛑 ELIMINADO: signInWithGoogle ya no se pasa como valor
     }}>
       {children}
     </AuthContext.Provider>

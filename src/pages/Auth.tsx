@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, UserPlus, Mail, Lock, User, Chrome, Sparkles } from 'lucide-react';
+// 🛑 ELIMINADO: Chrome ya no es necesario
+import { LogIn, UserPlus, Mail, Lock, User, Sparkles } from 'lucide-react'; 
 import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
-  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth();
+  // 🛑 ELIMINADO: signInWithGoogle del hook
+  const { user, loading, signIn, signUp } = useAuth(); 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -63,11 +65,7 @@ const Auth = () => {
     setIsLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    await signInWithGoogle();
-    setIsLoading(false);
-  };
+  // 🛑 ELIMINADO: La función handleGoogleSignIn ha sido removida.
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
@@ -89,26 +87,8 @@ const Auth = () => {
         {/* Auth Card */}
         <Card className="glass-card">
           <CardHeader className="pb-4">
-            <div className="flex justify-center mb-4">
-              <Button
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full hero-button"
-                size="lg"
-              >
-                <Chrome className="w-5 h-5 mr-2" />
-                {isLoading ? 'Conectando...' : 'Continuar con Google'}
-              </Button>
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border/50" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">o</span>
-              </div>
-            </div>
+            {/* 🛑 ELIMINADO: Botón de Google */}
+            {/* 🛑 ELIMINADO: Divisor 'o' */}
           </CardHeader>
 
           <CardContent>
