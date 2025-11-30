@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -9,29 +8,39 @@ export interface Query {
   code: string;
   language: string;
   ai_response?: string;
-  tags: string[];
+  tags?: string[];
   is_favorite: boolean;
   created_at: string;
   updated_at: string;
 }
+
 
 export const useQueries = () => {
   const { user } = useAuth();
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('auth_token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   // Load user queries
   const loadQueries = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('queries')
-        .select('*')
-        .order('updated_at', { ascending: false });
+      const res = await fetch('http://localhost:3001/api/queries', {
+        headers: getAuthHeaders()
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to fetch queries');
+
+      const data = await res.json();
       setQueries(data || []);
     } catch (error: any) {
       toast({
@@ -56,22 +65,22 @@ export const useQueries = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('queries')
-        .insert({
-          user_id: user.id,
+      const res = await fetch('http://localhost:3001/api/queries', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
           title,
           code,
           language,
           ai_response: aiResponse
         })
-        .select()
-        .single();
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to save query');
 
+      const data = await res.json();
       setQueries(prev => [data, ...prev]);
-      
+
       toast({
         title: "Consulta guardada",
         description: `"${title}" se guardó correctamente.`
@@ -93,17 +102,17 @@ export const useQueries = () => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('queries')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      const res = await fetch(`http://localhost:3001/api/queries/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(updates)
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to update query');
 
+      const data = await res.json();
       setQueries(prev => prev.map(q => q.id === id ? data : q));
-      
+
       toast({
         title: "Consulta actualizada",
         description: "La consulta se actualizó correctamente."
@@ -125,15 +134,15 @@ export const useQueries = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('queries')
-        .delete()
-        .eq('id', id);
+      const res = await fetch(`http://localhost:3001/api/queries/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to delete query');
 
       setQueries(prev => prev.filter(q => q.id !== id));
-      
+
       toast({
         title: "Consulta eliminada",
         description: "La consulta se eliminó correctamente."

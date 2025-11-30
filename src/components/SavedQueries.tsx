@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Heart, 
-  Trash2, 
+import {
+  Heart,
+  Trash2,
   Calendar,
   Code2,
   Search,
@@ -48,7 +48,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
 
   const filteredQueries = queries.filter(query => {
     const matchesSearch = query.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         query.code.toLowerCase().includes(searchTerm.toLowerCase());
+      query.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFavorites = !filterFavorites || query.is_favorite;
     return matchesSearch && matchesFavorites;
   });
@@ -85,7 +85,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
             Consultas Guardadas
             <Badge variant="secondary">{queries.length}</Badge>
           </CardTitle>
-          
+
           <Button
             variant={filterFavorites ? "default" : "outline"}
             size="sm"
@@ -95,7 +95,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
             <Star className={cn("w-4 h-4", filterFavorites && "fill-current")} />
           </Button>
         </div>
-        
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -148,7 +148,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-1 ml-2">
                           <Button
                             variant="ghost"
@@ -157,7 +157,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
                             className="h-7 w-7 p-0 hover-glow"
                           >
                             <Heart className={cn(
-                              "w-3 h-3", 
+                              "w-3 h-3",
                               query.is_favorite && "fill-current text-red-500"
                             )} />
                           </Button>
@@ -185,7 +185,7 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
                       {/* Actions */}
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          {query.tags.length > 0 && (
+                          {query.tags && query.tags.length > 0 && (
                             <div className="flex gap-1">
                               {query.tags.slice(0, 2).map((tag, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
@@ -200,7 +200,8 @@ export const SavedQueries = ({ onLoadQuery, className }: SavedQueriesProps) => {
                             </div>
                           )}
                         </div>
-                        
+
+
                         <Button
                           variant="outline"
                           size="sm"

@@ -1,124 +1,131 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+
+interface User {
+  id: string;
+  email: string;
+  display_name?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  // 🛑 ELIMINADO: signInWithGoogle
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check for existing session on load
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    const checkSession = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3001/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        } else {
+          localStorage.removeItem('auth_token');
+        }
+      } catch (error) {
+        console.error('Session check failed', error);
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
+    try {
+      const res = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      localStorage.setItem('auth_token', data.session.access_token);
+      setUser(data.session.user);
+
+      toast({
+        title: "¡Bienvenido!",
+        description: "Has iniciado sesión correctamente."
+      });
+
+      return { error: null };
+    } catch (error: any) {
       toast({
         title: "Error de inicio de sesión",
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "¡Bienvenido!",
-        description: "Has iniciado sesión correctamente."
-      });
+      return { error };
     }
-    
-    return { error };
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          display_name: displayName
-        }
-      }
-    });
-    
-    if (error) {
+    try {
+      const res = await fetch('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, displayName })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+      toast({
+        title: "¡Registro exitoso!",
+        description: "Tu cuenta ha sido creada. Por favor inicia sesión."
+      });
+
+      return { error: null };
+    } catch (error: any) {
       toast({
         title: "Error de registro",
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "¡Registro exitoso!",
-        description: "Revisa tu email para confirmar tu cuenta."
-      });
+      return { error };
     }
-    
-    return { error };
   };
 
-  // 🛑 ELIMINADO: La función signInWithGoogle ha sido removida completamente.
-
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error al cerrar sesión",
-        description: error.message,
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión correctamente."
-      });
-    }
+    localStorage.removeItem('auth_token');
+    setUser(null);
+    toast({
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión correctamente."
+    });
   };
 
   return (
     <AuthContext.Provider value={{
       user,
-      session,
       loading,
       signIn,
       signUp,
       signOut
-      // 🛑 ELIMINADO: signInWithGoogle ya no se pasa como valor
     }}>
       {children}
     </AuthContext.Provider>

@@ -11,7 +11,8 @@ interface AuthSectionProps {
 }
 
 export const AuthSection = ({ className }: AuthSectionProps) => {
-  const { user, session, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
+
 
   if (loading) {
     return (
@@ -26,12 +27,11 @@ export const AuthSection = ({ className }: AuthSectionProps) => {
     );
   }
 
-  if (user && session) {
-    const displayName = user.user_metadata?.display_name || 
-                       user.user_metadata?.full_name || 
-                       user.email?.split('@')[0] || 
-                       'Usuario';
-    
+  if (user) {
+    const displayName = user.display_name ||
+      user.email?.split('@')[0] ||
+      'Usuario';
+
     return (
       <Card className={cn("glass-card hover-lift", className)}>
         <CardHeader className="pb-3">
@@ -47,13 +47,13 @@ export const AuthSection = ({ className }: AuthSectionProps) => {
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Badge variant="default">
                 <UserCheck className="w-3 h-3 mr-1" />
                 Conectado
               </Badge>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -74,6 +74,7 @@ export const AuthSection = ({ className }: AuthSectionProps) => {
       </Card>
     );
   }
+
 
   return (
     <Card className={cn("glass-card hover-lift", className)}>

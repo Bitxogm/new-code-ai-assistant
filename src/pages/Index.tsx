@@ -15,13 +15,13 @@ const Index = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               Powered by Gemini AI
             </Badge>
-            
+
             <h1 className="text-4xl md:text-6xl font-bold">
               <span className="gradient-text">Code AI Agent</span>
             </h1>
-            
+
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Refactoriza, analiza y optimiza tu código con inteligencia artificial avanzada. 
+              Refactoriza, analiza y optimiza tu código con inteligencia artificial avanzada.
               Soporte para múltiples lenguajes y análisis en tiempo real.
             </p>
           </div>
@@ -56,14 +56,17 @@ const Index = () => {
         <footer className="text-center py-8 border-t border-border/50">
           <div className="space-y-4">
             <p className="text-muted-foreground">
-              Desarrollado con ❤️ usando React, Supabase y Google Gemini AI
+              Desarrollado con ❤️ usando React, SQLite y Google Gemini AI
             </p>
             <div className="flex justify-center gap-4 text-sm">
               <span className="px-3 py-1 rounded-full bg-muted/50">React 18</span>
-              <span className="px-3 py-1 rounded-full bg-muted/50">Supabase</span>
+              <span className="px-3 py-1 rounded-full bg-muted/50">SQLite</span>
               <span className="px-3 py-1 rounded-full bg-muted/50">Tailwind CSS</span>
               <span className="px-3 py-1 rounded-full bg-muted/50">TypeScript</span>
             </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Code AI Agent by Victor Gonzalez. Todos los derechos reservados.
+            </p>
           </div>
         </footer>
       </div>

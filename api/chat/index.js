@@ -26,10 +26,9 @@ export default async function handler(request, response) {
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp' 
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash' // ¡Modelo actualizado!
     });
-
     // Construir system prompt con contexto enriquecido
     const systemPrompt = buildChatPrompt(code, language, context);
 
@@ -61,7 +60,7 @@ export default async function handler(request, response) {
 
   } catch (error) {
     console.error('Error en chat:', error);
-    response.status(500).json({ 
+    response.status(500).json({
       error: error.message || 'Error interno del servidor',
       details: 'Error al comunicarse con Gemini AI'
     });

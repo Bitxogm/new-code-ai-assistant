@@ -89,10 +89,9 @@ El proyecto incluye migraciones automáticas para:
 - Cópiala en \`GEMINI_API_KEY\`
 
 ### 2. Modelos soportados
-- \`gemini-2.0-flash-exp\` (recomendado - más rápido y económico)
-- \`gemini-1.5-pro\` (para tareas complejas)
-- \`gemini-2.0-flash-thinking-exp\` (para razonamiento complejo)
-
+### 2. Modelos soportados
+- `gemini-2.5-flash` (recomendado - más rápido y económico)
+- `gemini-1.5-pro` (o `gemini-2.5-pro` para la versión más reciente, para tareas complejas)
 ## 🚀 Deployment
 
 ### Vercel (Recomendado)

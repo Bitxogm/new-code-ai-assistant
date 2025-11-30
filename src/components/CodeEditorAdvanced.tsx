@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Copy, Upload, Play, Code2, TestTube, Shield, GitBranch, MessageSquare, Sparkles, Save, History, Layers } from 'lucide-react';
+import { Copy, Upload, Play, Code2, TestTube, Shield, GitBranch, MessageSquare, Sparkles, Save, History, Layers, Maximize, Minimize, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,13 +12,14 @@ import { useQueries, Query } from '@/hooks/useQueries';
 import { useGlobalCode } from '@/hooks/useGlobalCodeContext';
 import { SavedQueries } from '@/components/SavedQueries';
 import { MultiEditorWorkspace } from '@/components/MultiEditorWorkspace';
-import { supabase } from '@/integrations/supabase/client';
+
 import { apiClient } from '@/lib/api-client';
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
 import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView } from '@codemirror/view';
 interface CodeEditorAdvancedProps {
   className?: string;
 }
@@ -135,6 +136,8 @@ export const CodeEditorAdvanced = ({
   const [progress, setProgress] = useState(0);
   const [queryTitle, setQueryTitle] = useState('');
   const [showSavedQueries, setShowSavedQueries] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isInputFullScreen, setIsInputFullScreen] = useState(false);
   const [showMultiEditor, setShowMultiEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Sync with global context
@@ -233,6 +236,28 @@ export const CodeEditorAdvanced = ({
     toast({
       title: "💾 Ejercicio guardado",
       description: "El ejercicio completo se guardó exitosamente con todos los análisis y chat."
+    });
+  };
+
+  const handleDownloadCode = () => {
+    if (!outputCode) return;
+
+    const fileExtension = PROGRAMMING_LANGUAGES.find(l => l.value === selectedOutputLanguage)?.value || 'txt';
+    const fileName = `code-ai-result.${fileExtension}`;
+
+    const blob = new Blob([outputCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: '✅ Archivo descargado',
+      description: `${fileName} se ha descargado correctamente`
     });
   };
   const handleAnalyzeCode = async () => {
@@ -452,20 +477,7 @@ Por favor inténtalo nuevamente en unos momentos.`);
           </div>
         </div>
 
-        {/* Execute Button - Centered */}
-        <div className="flex justify-center mt-4">
-          <div className="space-y-2">
-            <div className="text-center">
-              <label className="text-sm font-medium text-foreground">
-                🚀 Ejecutar Análisis
-              </label>
-            </div>
-            <Button onClick={handleAnalyzeCode} disabled={isProcessing || showMultiEditor} size="lg" className="hero-button px-8 py-3">
-              <Play className="w-4 h-4 mr-2" />
-              {isProcessing ? 'Procesando...' : (selectedLanguage !== selectedOutputLanguage ? 'Traducir Código' : 'Ejecutar Análisis')}
-            </Button>
-          </div>
-        </div>
+
 
         {/* Progress Bar */}
         {isProcessing && <div className="mt-4 space-y-2">
@@ -507,6 +519,28 @@ Por favor inténtalo nuevamente en unos momentos.`);
       </CardContent>
     </Card>
 
+    {/* Execute Button */}
+    <div className="flex justify-center">
+      <Button
+        onClick={handleAnalyzeCode}
+        disabled={isProcessing || showMultiEditor || !inputCode.trim()}
+        size="lg"
+        className="hero-button px-10 py-6 text-lg rounded-full shadow-2xl hover:scale-105 transition-all duration-300"
+      >
+        {isProcessing ? (
+          <>
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+            Procesando...
+          </>
+        ) : (
+          <>
+            <Play className="w-5 h-5 mr-3" />
+            {selectedLanguage !== selectedOutputLanguage ? 'Traducir Código' : 'Ejecutar Análisis'}
+          </>
+        )}
+      </Button>
+    </div>
+
     {/* Saved Queries Panel */}
     {showSavedQueries && user && <SavedQueries onLoadQuery={handleLoadQuery} className="animate-fade-in-up" />}
 
@@ -530,14 +564,19 @@ Por favor inténtalo nuevamente en unos momentos.`);
                   {PROGRAMMING_LANGUAGES.find(l => l.value === selectedLanguage)?.label}
                 </Badge>
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(inputCode)} disabled={!inputCode} className="hover-glow">
-                <Copy className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsInputFullScreen(!isInputFullScreen)} disabled={!inputCode} className="hover-glow">
+                  {isInputFullScreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(inputCode)} disabled={!inputCode} className="hover-glow">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="code-editor">
-              <CodeMirror value={inputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension()]} onChange={value => setInputCode(value)} basicSetup={{
+              <CodeMirror value={inputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} onChange={value => setInputCode(value)} basicSetup={{
                 lineNumbers: true,
                 foldGutter: true,
                 dropCursor: false,
@@ -562,9 +601,17 @@ Por favor inténtalo nuevamente en unos momentos.`);
                   {selectedLanguage !== selectedOutputLanguage ? 'Traducción' : ANALYSIS_MODES.find(m => m.id === selectedMode)?.label}
                 </Badge>}
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(outputCode)} disabled={!outputCode} className="hover-glow">
-                <Copy className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(!isFullScreen)} disabled={!outputCode} className="hover-glow">
+                  {isFullScreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleDownloadCode} disabled={!outputCode} className="hover-glow">
+                  <Download className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(outputCode)} disabled={!outputCode} className="hover-glow">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -583,7 +630,7 @@ Por favor inténtalo nuevamente en unos momentos.`);
                     </p>
                   </div>
                 </div>
-              </div> : <CodeMirror value={outputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension()]} editable={false} placeholder="El resultado del análisis IA aparecerá aquí..." basicSetup={{
+              </div> : <CodeMirror value={outputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} editable={false} placeholder="El resultado del análisis IA aparecerá aquí..." basicSetup={{
                 lineNumbers: true,
                 foldGutter: true,
                 dropCursor: false,
@@ -592,6 +639,99 @@ Por favor inténtalo nuevamente en unos momentos.`);
             </div>
           </CardContent>
         </Card>
+
+        {/* Full Screen Output Editor */}
+        {isFullScreen && outputCode && (
+          <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm p-8">
+            <Card className="glass-card h-full flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    🤖 {selectedLanguage !== selectedOutputLanguage ? `Código Traducido (${PROGRAMMING_LANGUAGES.find(l => l.value === selectedOutputLanguage)?.label})` : 'Resultado del Análisis IA'}
+                    {selectedMode && <Badge className={ANALYSIS_MODES.find(m => m.id === selectedMode)?.color}>
+                      {selectedLanguage !== selectedOutputLanguage ? 'Traducción' : ANALYSIS_MODES.find(m => m.id === selectedMode)?.label}
+                    </Badge>}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(outputCode)} className="hover-glow">
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(false)} className="hover-glow">
+                      <Minimize className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden">
+                <div className="code-editor h-full">
+                  <CodeMirror
+                    value={outputCode}
+                    height="100%"
+                    theme={oneDark}
+                    extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]}
+                    editable={false}
+                    basicSetup={{
+                      lineNumbers: true,
+                      foldGutter: true,
+                      dropCursor: false,
+                      allowMultipleSelections: false
+                    }}
+                    className="text-sm font-mono"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Full Screen Input Editor */}
+        {isInputFullScreen && inputCode && (
+          <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm p-8">
+            <Card className="glass-card h-full flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    📝 Código de Entrada
+                    <Badge variant="outline" className="text-xs">
+                      {PROGRAMMING_LANGUAGES.find(l => l.value === selectedLanguage)?.label}
+                    </Badge>
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleCopyToClipboard(inputCode)} className="hover-glow">
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setIsInputFullScreen(false)} className="hover-glow">
+                      <Minimize className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden">
+                <div className="code-editor h-full">
+                  <CodeMirror
+                    value={inputCode}
+                    height="100%"
+                    theme={oneDark}
+                    extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]}
+                    onChange={value => setInputCode(value)}
+                    basicSetup={{
+                      lineNumbers: true,
+                      foldGutter: true,
+                      dropCursor: false,
+                      allowMultipleSelections: false,
+                      indentOnInput: true,
+                      bracketMatching: true,
+                      closeBrackets: true,
+                      autocompletion: true,
+                      highlightSelectionMatches: false
+                    }}
+                    className="text-sm font-mono"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     )}
   </div>;
