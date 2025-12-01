@@ -12,30 +12,34 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 // ⬇️ Importamos el icono X para cerrar
-import { MessageSquare, X } from "lucide-react"; 
+import { MessageSquare, X } from "lucide-react";
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 
 const queryClient = new QueryClient();
 
 const AppContent = () => { // ⬅️ Creamos un subcomponente para usar el hook dentro del Provider
   // ⬇️ Accedemos al estado 'open' del sidebar. ¡Esto debe estar DENTRO del SidebarProvider!
-  const { open } = useSidebar(); 
+  const { open } = useSidebar();
 
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* Header with Chat Toggle */}
-      <header className="h-12 flex items-center bg-background/80 backdrop-blur border-b border-border px-4 flex-shrink-0">
-        
+      <header className="h-12 flex items-center justify-between bg-background/80 backdrop-blur border-b border-border px-4 flex-shrink-0">
+
         <SidebarTrigger className="flex items-center gap-2 text-sm">
           {/* ⬇️ Lógica dinámica: Si está abierto, muestra X. Si está cerrado, muestra MessageSquare. */}
           {open ? (
-            <X className="w-4 h-4" /> 
+            <X className="w-4 h-4" />
           ) : (
             <MessageSquare className="w-4 h-4" />
           )}
           {open ? 'Cerrar Chat' : 'Chat IA'}
-        
+
         </SidebarTrigger>
-      
+
+
+
       </header>
 
       {/* Main Layout with Sidebar */}
@@ -53,7 +57,7 @@ const AppContent = () => { // ⬅️ Creamos un subcomponente para usar el hook 
         {/* Chat Sidebar */}
         <GlobalChatSidebar />
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -61,18 +65,20 @@ const AppContent = () => { // ⬅️ Creamos un subcomponente para usar el hook 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <GlobalCodeProvider>
-          <BrowserRouter>
-            <SidebarProvider>
-              {/* ⬇️ Renderizamos el subcomponente que usa el hook */}
-              <AppContent /> 
-              <Toaster />
-              <Sonner />
-            </SidebarProvider>
-          </BrowserRouter>
-        </GlobalCodeProvider>
-      </AuthProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <AuthProvider>
+          <GlobalCodeProvider>
+            <BrowserRouter>
+              <SidebarProvider>
+                {/* ⬇️ Renderizamos el subcomponente que usa el hook */}
+                <AppContent />
+                <Toaster />
+                <Sonner />
+              </SidebarProvider>
+            </BrowserRouter>
+          </GlobalCodeProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

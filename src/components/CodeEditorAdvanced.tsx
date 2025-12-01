@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Copy, Upload, Play, Code2, TestTube, Shield, GitBranch, MessageSquare, Sparkles, Save, History, Layers, Maximize, Minimize, Download } from 'lucide-react';
+import { Copy, Upload, Play, Code2, TestTube, Shield, GitBranch, MessageSquare, Sparkles, Save, History, Layers, Maximize, Minimize, Download, GitCompare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,8 @@ import { javascript } from '@codemirror/lang-javascript';
 import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView } from '@codemirror/view';
+import { useTheme } from '@/components/ThemeProvider';
+import DiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
 interface CodeEditorAdvancedProps {
   className?: string;
 }
@@ -138,7 +140,11 @@ export const CodeEditorAdvanced = ({
   const [showSavedQueries, setShowSavedQueries] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isInputFullScreen, setIsInputFullScreen] = useState(false);
+
   const [showMultiEditor, setShowMultiEditor] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Sync with global context
   useEffect(() => {
@@ -576,7 +582,7 @@ Por favor inténtalo nuevamente en unos momentos.`);
           </CardHeader>
           <CardContent>
             <div className="code-editor">
-              <CodeMirror value={inputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} onChange={value => setInputCode(value)} basicSetup={{
+              <CodeMirror value={inputCode} height="500px" theme={isDark ? oneDark : 'light'} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} onChange={value => setInputCode(value)} basicSetup={{
                 lineNumbers: true,
                 foldGutter: true,
                 dropCursor: false,
@@ -602,6 +608,9 @@ Por favor inténtalo nuevamente en unos momentos.`);
                 </Badge>}
               </CardTitle>
               <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setShowDiff(!showDiff)} disabled={!outputCode} className="hover-glow" title="Comparar cambios">
+                  <GitCompare className="w-4 h-4" />
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(!isFullScreen)} disabled={!outputCode} className="hover-glow">
                   {isFullScreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
                 </Button>
@@ -630,7 +639,16 @@ Por favor inténtalo nuevamente en unos momentos.`);
                     </p>
                   </div>
                 </div>
-              </div> : <CodeMirror value={outputCode} height="500px" theme={oneDark} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} editable={false} placeholder="El resultado del análisis IA aparecerá aquí..." basicSetup={{
+              </div> : showDiff && outputCode ? (
+                <div className="h-[500px] overflow-auto rounded-lg bg-editor-bg">
+                  <DiffViewer
+                    oldValue={inputCode}
+                    newValue={outputCode}
+                    splitView={false}
+                    useDarkTheme={isDark}
+                  />
+                </div>
+              ) : <CodeMirror value={outputCode} height="500px" theme={isDark ? oneDark : 'light'} extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]} editable={false} placeholder="El resultado del análisis IA aparecerá aquí..." basicSetup={{
                 lineNumbers: true,
                 foldGutter: true,
                 dropCursor: false,
@@ -663,21 +681,32 @@ Por favor inténtalo nuevamente en unos momentos.`);
                 </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden">
-                <div className="code-editor h-full">
-                  <CodeMirror
-                    value={outputCode}
-                    height="100%"
-                    theme={oneDark}
-                    extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]}
-                    editable={false}
-                    basicSetup={{
-                      lineNumbers: true,
-                      foldGutter: true,
-                      dropCursor: false,
-                      allowMultipleSelections: false
-                    }}
-                    className="text-sm font-mono"
-                  />
+                <div className="code-editor h-full bg-editor-bg">
+                  {showDiff ? (
+                    <div className="h-full overflow-auto">
+                      <DiffViewer
+                        oldValue={inputCode}
+                        newValue={outputCode}
+                        splitView={true}
+                        useDarkTheme={isDark}
+                      />
+                    </div>
+                  ) : (
+                    <CodeMirror
+                      value={outputCode}
+                      height="100%"
+                      theme={isDark ? oneDark : 'light'}
+                      extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]}
+                      editable={false}
+                      basicSetup={{
+                        lineNumbers: true,
+                        foldGutter: true,
+                        dropCursor: false,
+                        allowMultipleSelections: false
+                      }}
+                      className="text-sm font-mono h-full"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -711,7 +740,7 @@ Por favor inténtalo nuevamente en unos momentos.`);
                   <CodeMirror
                     value={inputCode}
                     height="100%"
-                    theme={oneDark}
+                    theme={isDark ? oneDark : 'light'}
                     extensions={[getCurrentLanguageExtension(), EditorView.lineWrapping]}
                     onChange={value => setInputCode(value)}
                     basicSetup={{

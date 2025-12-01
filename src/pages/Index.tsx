@@ -3,6 +3,7 @@ import { AuthSection } from '@/components/AuthSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Code2, Zap, Shield, TestTube } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Index = () => {
   return (
@@ -11,10 +12,13 @@ const Index = () => {
         {/* Hero Header */}
         <div className="text-center space-y-6 animate-slide-up">
           <div className="space-y-4">
-            <Badge className="px-4 py-2 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 transition-colors">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Powered by Gemini AI
-            </Badge>
+            <div className="flex items-center justify-center gap-4">
+              <Badge className="px-4 py-2 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 transition-colors">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Powered by Gemini AI
+              </Badge>
+              <ThemeToggle />
+            </div>
 
             <h1 className="text-4xl md:text-6xl font-bold">
               <span className="gradient-text">Code AI Agent</span>
